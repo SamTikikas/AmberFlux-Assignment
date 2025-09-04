@@ -1,0 +1,62 @@
+# Backend Environment Variables (.env)
+
+# =====================================
+# Database Configuration
+# =====================================
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password_here
+DB_NAME=media_recorder_db
+
+# =====================================
+# Server Configuration
+# =====================================
+PORT=5000
+NODE_ENV=development
+
+# =====================================
+# CORS Configuration
+# =====================================
+FRONTEND_URL=http://localhost:3000
+
+# =====================================
+# Production Configuration (for Render deployment)
+# =====================================
+# Uncomment and modify these for production deployment
+
+# Database (replace with your production database details)
+# DB_HOST=your_production_db_host
+# DB_USER=your_production_db_user  
+# DB_PASSWORD=your_production_db_password
+# DB_NAME=your_production_db_name
+
+# Server
+# NODE_ENV=production
+# FRONTEND_URL=https://your-frontend-app.vercel.app
+
+# =====================================
+# Additional Configuration Options
+# =====================================
+
+# File upload limits
+MAX_FILE_SIZE=104857600  # 100MB in bytes
+
+# Session configuration (if you add authentication later)
+# SESSION_SECRET=your_super_secret_key_here
+
+# Rate limiting (requests per minute)
+# RATE_LIMIT=100
+
+# =====================================
+# Example Production .env for Render
+# =====================================
+# Copy these to your Render environment variables:
+#
+# NODE_ENV=production
+# PORT=5000
+# DB_HOST=your_render_db_host
+# DB_USER=your_render_db_user
+# DB_PASSWORD=your_render_db_password
+# DB_NAME=media_recorder_db
+# FRONTEND_URL=https://your-app.vercel.app
+# MAX_FILE_SIZE=104857600
