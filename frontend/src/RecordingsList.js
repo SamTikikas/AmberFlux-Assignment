@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Alert, Badge, Spinner, Modal } from 'react-bootstrap';
 import axios from 'axios';
+import './design.css';
+import './App.css';
 
 const RecordingsList = ({ refreshKey, apiUrl }) => {
   const [recordings, setRecordings] = useState([]);
@@ -55,7 +57,6 @@ const RecordingsList = ({ refreshKey, apiUrl }) => {
   };
 
   const getFileName = (filename) => {
-    // Extract a more readable name from the filename
     const parts = filename.split('-');
     if (parts.length >= 2) {
       const timestamp = new Date(parseInt(parts[1]));
@@ -87,17 +88,22 @@ const RecordingsList = ({ refreshKey, apiUrl }) => {
     setSelectedRecording(null);
   };
 
+  // Calculate total size for footer
+  const totalSize = recordings.reduce((sum, recording) => sum + recording.size, 0);
+
   if (loading) {
     return (
-      <Card className="mt-4 shadow">
-        <Card.Header className="bg-light">
-          <h4 className="mb-0">📂 Uploaded Recordings</h4>
+      <Card className="main-card">
+        <Card.Header className="card-header-custom">
+          <h4 className="card-title">📁 My Recordings</h4>
         </Card.Header>
-        <Card.Body className="text-center py-5">
-          <Spinner animation="border" role="status" className="mb-3">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-          <p className="text-muted">Loading recordings...</p>
+        <Card.Body className="card-body-custom text-center">
+          <div className="loading-state">
+            <Spinner animation="border" role="status" className="spinner-custom mb-3">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+            <p className="loading-text">Loading your recordings...</p>
+          </div>
         </Card.Body>
       </Card>
     );
@@ -105,153 +111,209 @@ const RecordingsList = ({ refreshKey, apiUrl }) => {
 
   return (
     <>
-      <Card className="mt-4 shadow">
-        <Card.Header className="bg-light d-flex justify-content-between align-items-center">
-          <h4 className="mb-0">📂 Uploaded Recordings</h4>
-          <div>
-            <Badge bg="primary" className="me-2">
-              {recordings.length} recording{recordings.length !== 1 ? 's' : ''}
-            </Badge>
-            <Button 
-              variant="outline-secondary" 
-              size="sm" 
-              onClick={fetchRecordings}
-              disabled={loading}
-            >
-              🔄 Refresh
-            </Button>
+      <Card className="main-card">
+        <Card.Header className="card-header-custom">
+          <div className="header-content">
+            <div>
+              <h4 className="card-title">📁 My Recordings</h4>
+              <p className="card-subtitle">Manage and view your screen recordings</p>
+            </div>
+            <div className="header-actions">
+              <Badge className="count-badge">
+                {recordings.length} recording{recordings.length !== 1 ? 's' : ''}
+              </Badge>
+              <Button 
+                className="btn-custom btn-secondary btn-sm"
+                onClick={fetchRecordings}
+                disabled={loading}
+              >
+                <span className="btn-icon">🔄</span>
+                Refresh
+              </Button>
+            </div>
           </div>
         </Card.Header>
-        <Card.Body>
+        
+        <Card.Body className="card-body-custom p-0">
           {error && (
-            <Alert variant="warning" dismissible onClose={() => setError(null)}>
-              <Alert.Heading>⚠️ Connection Issue</Alert.Heading>
-              <p>{error}</p>
-              <div className="d-flex gap-2">
-                <Button variant="outline-warning" size="sm" onClick={fetchRecordings}>
-                  Try Again
-                </Button>
-              </div>
-            </Alert>
+            <div className="m-4">
+              <Alert className="alert-custom alert-error">
+                <div className="alert-content">
+                  <span className="alert-icon">⚠️</span>
+                  <div>
+                    <strong>Connection Issue</strong>
+                    <p className="mb-2">{error}</p>
+                    <Button className="btn-custom btn-secondary btn-sm" onClick={fetchRecordings}>
+                      <span className="btn-icon">🔄</span>
+                      Try Again
+                    </Button>
+                  </div>
+                </div>
+              </Alert>
+            </div>
           )}
           
           {recordings.length === 0 && !error ? (
-            <Alert variant="info" className="text-center mb-0">
-              <h5>📹 No recordings yet</h5>
-              <p className="mb-0">
-                Start by recording your screen above, then upload it to see it in this list!
+            <div className="empty-state">
+              <div className="empty-icon">📹</div>
+              <h5 className="empty-title">No recordings yet</h5>
+              <p className="empty-subtitle">
+                Start by recording your screen, then upload it to see it in this list!
               </p>
-            </Alert>
+            </div>
           ) : (
-            <div className="table-responsive">
-              <Table hover className="mb-0">
-                <thead className="table-light">
+            <div className="table-container">
+              <Table className="table-custom">
+                {/* Table Caption */}
+                <caption className="table-caption">
+                  A list of your recent screen recordings
+                </caption>
+                
+                {/* Table Header */}
+                <thead className="table-header">
                   <tr>
-                    <th>🎬 Title</th>
-                    <th>📏 Size</th>
-                    <th>📅 Created</th>
-                    <th>🎮 Actions</th>
+                    <th className="col-recording">🎬 Recording</th>
+                    <th className="col-status">📊 Status</th>
+                    <th className="col-size">📏 Size</th>
+                    <th className="col-date">📅 Created</th>
+                    <th className="col-actions">🎮 Actions</th>
                   </tr>
                 </thead>
+                
+                {/* Table Body */}
                 <tbody>
                   {recordings.map((recording) => (
-                    <tr key={recording.id}>
-                      <td>
-                        <strong className="text-primary">
-                          {getFileName(recording.filename)}
-                        </strong>
-                        <br />
-                        <small className="text-muted">{recording.filename}</small>
+                    <tr key={recording.id} className="table-row">
+                      <td className="col-recording">
+                        <div className="recording-info">
+                          <div className="recording-icon">🎥</div>
+                          <div className="recording-details">
+                            <div className="recording-name">
+                              {getFileName(recording.filename)}
+                            </div>
+                            <div className="recording-filename">
+                              {recording.filename}
+                            </div>
+                          </div>
+                        </div>
                       </td>
-                      <td>
-                        <Badge bg="secondary">
+                      
+                      <td className="col-status">
+                        <Badge className="status-badge status-uploaded">
+                          ✅ Uploaded
+                        </Badge>
+                      </td>
+                      
+                      <td className="col-size">
+                        <Badge className="size-badge">
                           {formatFileSize(recording.size)}
                         </Badge>
                       </td>
-                      <td className="text-muted">
-                        {formatDate(recording.created_at)}
+                      
+                      <td className="col-date">
+                        <div className="date-info">
+                          {formatDate(recording.created_at)}
+                        </div>
                       </td>
-                      <td>
-                        <div className="btn-group" role="group">
+                      
+                      <td className="col-actions">
+                        <div className="action-buttons">
                           <Button
-                            variant="outline-primary"
-                            size="sm"
+                            className="btn-custom btn-action btn-play"
                             onClick={() => playRecording(recording)}
                             title="Play recording"
                           >
-                            ▶️ Play
+                            <span className="btn-icon">▶️</span>
                           </Button>
                           <Button
-                            variant="outline-success"
-                            size="sm"
+                            className="btn-custom btn-action btn-download"
                             onClick={() => downloadRecording(recording)}
                             title="Download recording"
                           >
-                            📥 Download
+                            <span className="btn-icon">📥</span>
                           </Button>
                         </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
+                
+                {/* Table Footer */}
+                {recordings.length > 0 && (
+                  <tfoot className="table-footer">
+                    <tr>
+                      <td colSpan={4} className="footer-label">
+                        Total Storage Used
+                      </td>
+                      <td className="footer-value">
+                        {formatFileSize(totalSize)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
               </Table>
             </div>
           )}
         </Card.Body>
       </Card>
 
-      {/* Video Player Modal */}
+      {/* Consistent Video Player Modal */}
       <Modal 
         show={showModal} 
         onHide={closeModal} 
-        size="lg" 
+        size="xl" 
         centered
-        className="video-modal"
+        className="video-modal-custom"
       >
-        <Modal.Header closeButton className="bg-dark text-white">
-          <Modal.Title>
-            🎬 {selectedRecording ? getFileName(selectedRecording.filename) : 'Recording'}
+        <Modal.Header closeButton className="modal-header-custom">
+          <Modal.Title className="modal-title-custom">
+            <span className="modal-icon">🎬</span>
+            {selectedRecording ? getFileName(selectedRecording.filename) : 'Recording'}
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="p-0 bg-dark">
+        
+        <Modal.Body className="modal-body-custom">
           {selectedRecording && (
-            <video
-              src={`${apiUrl}/api/recordings/${selectedRecording.id}`}
-              controls
-              autoPlay
-              style={{
-                width: '100%',
-                height: 'auto',
-                maxHeight: '70vh'
-              }}
-              onError={(e) => {
-                console.error('Video playback error:', e);
-              }}
-            >
-              Your browser does not support the video tag.
-            </video>
+            <div className="video-container">
+              <video
+                src={`${apiUrl}/api/recordings/${selectedRecording.id}`}
+                controls
+                autoPlay
+                className="video-player"
+                onError={(e) => {
+                  console.error('Video playback error:', e);
+                }}
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
           )}
         </Modal.Body>
-        <Modal.Footer className="bg-light">
-          <div className="d-flex justify-content-between w-100 align-items-center">
-            <div className="text-muted small">
+        
+        <Modal.Footer className="modal-footer-custom">
+          <div className="modal-footer-content">
+            <div className="modal-info">
               {selectedRecording && (
                 <>
-                  Size: {formatFileSize(selectedRecording.size)} • 
-                  Created: {formatDate(selectedRecording.created_at)}
+                  <Badge className="info-badge">ID: {selectedRecording.id}</Badge>
+                  <span className="info-text">
+                    {formatFileSize(selectedRecording.size)} • {formatDate(selectedRecording.created_at)}
+                  </span>
                 </>
               )}
             </div>
-            <div>
+            <div className="modal-actions">
               <Button 
-                variant="outline-success" 
-                size="sm" 
+                className="btn-custom btn-download"
                 onClick={() => selectedRecording && downloadRecording(selectedRecording)}
-                className="me-2"
               >
-                📥 Download
+                <span className="btn-icon">📥</span>
+                Download
               </Button>
-              <Button variant="secondary" onClick={closeModal}>
+              <Button 
+                className="btn-custom btn-secondary"
+                onClick={closeModal}
+              >
                 Close
               </Button>
             </div>

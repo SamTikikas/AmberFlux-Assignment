@@ -23,7 +23,7 @@ REACT_APP_MAX_FILE_SIZE=104857600  # 100MB in bytes
 # Uncomment and modify these for production deployment
 
 # API URL (replace with your Render backend URL)
-# REACT_APP_API_URL=https://your-backend-app.onrender.com
+ REACT_APP_API_URL=https://your-backend-app.onrender.com
 
 # =====================================
 # Development Configuration
@@ -35,8 +35,7 @@ REACT_APP_MAX_FILE_SIZE=104857600  # 100MB in bytes
 # Example Production .env for Vercel
 # =====================================
 # Add this to your Vercel environment variables:
-#
-# REACT_APP_API_URL=https://your-backend.onrender.com
+#REACT_APP_API_URL=https://your-backend.onrender.com
 # REACT_APP_NAME=Screen Recorder
 # REACT_APP_VERSION=1.0.0
 # REACT_APP_MAX_RECORDING_TIME=180

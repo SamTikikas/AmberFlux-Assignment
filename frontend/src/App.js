@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Container, Row, Col, Card, Alert, Badge, ProgressBar } from 'react-bootstrap';
+import { Button, Container, Row, Col, Card, Alert, Badge, ProgressBar, Nav, Navbar } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
 import RecordingsList from './RecordingsList';
 import './App.css';
-
+import './design.css';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const App = () => {
@@ -20,6 +20,7 @@ const App = () => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [stream, setStream] = useState(null);
   const [error, setError] = useState('');
+  const [currentView, setCurrentView] = useState('recorder');
   
   // Refs
   const videoRef = useRef(null);
@@ -70,19 +71,16 @@ const App = () => {
 
   const startRecording = async () => {
     try {
-      // Reset previous recording data
       setRecordedChunks([]);
       setRecordingUrl(null);
       setRecordingTime(0);
       setUploadStatus('');
       setError('');
 
-      // Check browser support
       if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
         throw new Error('Screen recording is not supported in this browser. Please use Chrome or Edge.');
       }
 
-      // Get display media (screen + audio)
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: { 
           mediaSource: 'screen',
@@ -99,7 +97,6 @@ const App = () => {
 
       let combinedStream = displayStream;
 
-      // Try to get microphone audio and combine with screen audio
       try {
         const micStream = await navigator.mediaDevices.getUserMedia({
           audio: {
@@ -110,7 +107,6 @@ const App = () => {
           video: false
         });
         
-        // Combine display and microphone streams
         const audioTracks = [
           ...displayStream.getAudioTracks(),
           ...micStream.getAudioTracks()
@@ -122,27 +118,24 @@ const App = () => {
         ]);
       } catch (micError) {
         console.warn('Microphone access denied, using only screen audio:', micError);
-        // Continue with display stream only
       }
 
       setStream(combinedStream);
 
-      // Check MediaRecorder support
       if (!MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
         if (!MediaRecorder.isTypeSupported('video/webm')) {
           throw new Error('WebM recording is not supported in this browser.');
         }
       }
 
-      // Create MediaRecorder
       const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
         ? 'video/webm;codecs=vp9' 
         : 'video/webm';
         
       const recorder = new MediaRecorder(combinedStream, {
         mimeType,
-        videoBitsPerSecond: 2500000, // 2.5 Mbps
-        audioBitsPerSecond: 128000   // 128 kbps
+        videoBitsPerSecond: 2500000,
+        audioBitsPerSecond: 128000
       });
 
       const chunks = [];
@@ -160,7 +153,6 @@ const App = () => {
         setRecordingUrl(url);
         setRecordedChunks([blob]);
         
-        // Stop all tracks
         combinedStream.getTracks().forEach(track => {
           track.stop();
           console.log(`Stopped ${track.kind} track`);
@@ -174,7 +166,6 @@ const App = () => {
         stopRecording();
       };
 
-      // Handle stream ending (user stops sharing)
       displayStream.getVideoTracks()[0].onended = () => {
         console.log('Screen sharing ended by user');
         if (isRecording) {
@@ -182,12 +173,10 @@ const App = () => {
         }
       };
 
-      // Start recording
-      recorder.start(1000); // Collect data every second
+      recorder.start(1000);
       setMediaRecorder(recorder);
       setIsRecording(true);
 
-      // Show live preview
       if (videoRef.current) {
         videoRef.current.srcObject = displayStream;
       }
@@ -198,7 +187,6 @@ const App = () => {
       console.error('Error starting recording:', error);
       setError(`Failed to start recording: ${error.message}`);
       
-      // Cleanup on error
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         setStream(null);
@@ -215,13 +203,11 @@ const App = () => {
     
     setIsRecording(false);
     
-    // Stop all tracks
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
 
-    // Reset preview
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
@@ -244,14 +230,13 @@ const App = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000, // 30 second timeout
+        timeout: 30000,
       });
 
       console.log('Upload successful:', response.data);
       setUploadStatus('success');
       setRefreshKey(prevKey => prevKey + 1);
       
-      // Clear the recording after successful upload
       setTimeout(() => {
         setUploadStatus('');
       }, 3000);
@@ -293,187 +278,279 @@ const App = () => {
   const timeRemaining = MAX_RECORDING_TIME - recordingTime;
 
   return (
-    <Container className="my-5">
-      <Row className="justify-content-center">
-        <Col lg={10} xl={8}>
-          <Card className="shadow-lg">
-            <Card.Header className="bg-primary text-white text-center py-3">
-              <h1 className="mb-0">
-                🎥 Screen Recorder
-                <Badge bg="light" text="primary" className="ms-2">MERN Stack</Badge>
-              </h1>
-            </Card.Header>
+    <div className="app-wrapper">
+      {/* Consistent Navigation Header */}
+      <Navbar bg="primary" variant="dark" expand="lg" className="navbar-custom">
+        <Container>
+          <Navbar.Brand className="brand-logo">
+            <span className="brand-icon">🎥</span>
+            Screen Recorder
+          </Navbar.Brand>
+          <Nav className="ms-auto">
+            <Nav.Link 
+              className={`nav-link-custom ${currentView === 'recorder' ? 'active' : ''}`}
+              onClick={() => setCurrentView('recorder')}
+            >
+              📹 Recorder
+            </Nav.Link>
+            <Nav.Link 
+              className={`nav-link-custom ${currentView === 'recordings' ? 'active' : ''}`}
+              onClick={() => setCurrentView('recordings')}
+            >
+              📁 My Recordings
+            </Nav.Link>
+          </Nav>
+        </Container>
+      </Navbar>
+
+      <Container className="main-content">
+        <Row className="justify-content-center">
+          <Col lg={10} xl={8}>
             
-            <Card.Body className="p-4">
-              {/* Error Display */}
-              {error && (
-                <Alert variant="danger" dismissible onClose={() => setError('')}>
-                  <Alert.Heading>Error</Alert.Heading>
-                  {error}
-                </Alert>
-              )}
-
-              {/* Recording Timer */}
-              {isRecording && (
-                <div className="recording-status mb-4">
-                  <div className="text-center mb-3">
-                    <h3 className="text-danger mb-2">
-                      🔴 Recording: {formatTime(recordingTime)} / {formatTime(MAX_RECORDING_TIME)}
-                    </h3>
-                    <p className="text-muted mb-2">
-                      Time remaining: {formatTime(timeRemaining)}
-                    </p>
-                  </div>
-                  <ProgressBar 
-                    variant={progressPercentage > 80 ? 'danger' : 'primary'}
-                    now={progressPercentage} 
-                    className="mb-3"
-                    style={{ height: '8px' }}
-                  />
+            {/* Recorder View */}
+            {currentView === 'recorder' && (
+              <div className="view-container">
+                {/* Page Header */}
+                <div className="page-header">
+                  <h1 className="page-title">
+                    🎬 Screen Recorder
+                    <Badge className="status-badge ms-3">
+                      {isRecording ? '🔴 Recording' : recordingUrl ? '✅ Complete' : '⭕ Ready'}
+                    </Badge>
+                  </h1>
+                  <p className="page-subtitle">
+                    Record your browser screen with professional quality audio and video
+                  </p>
                 </div>
-              )}
 
-              {/* Live Preview */}
-              {isRecording && (
-                <div className="mb-4">
-                  <h5 className="text-center mb-3">📺 Live Preview</h5>
-                  <div className="video-container">
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      muted
-                      playsInline
-                      className="preview-video"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Control Buttons */}
-              <div className="text-center mb-4">
-                <div className="d-grid gap-2 d-md-flex justify-content-md-center">
-                  {!isRecording && !recordingUrl && (
-                    <Button
-                      variant="success"
-                      size="lg"
-                      onClick={startRecording}
-                      className="px-4"
-                    >
-                      🎬 Start Screen Recording
-                    </Button>
-                  )}
-                  
-                  {isRecording && (
-                    <Button
-                      variant="danger"
-                      size="lg"
-                      onClick={stopRecording}
-                      className="px-4"
-                    >
-                      ⏹️ Stop Recording
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              {/* Instructions */}
-              {!isRecording && !recordingUrl && (
-                <Alert variant="info">
-                  <h5>📋 Instructions:</h5>
-                  <ol className="mb-0">
-                    <li>Click "Start Screen Recording" button</li>
-                    <li>Select the browser tab or entire screen to record</li>
-                    <li>Allow microphone access for better audio quality</li>
-                    <li>Recording will automatically stop after 3 minutes</li>
-                    <li>You can manually stop anytime by clicking "Stop Recording"</li>
-                  </ol>
-                </Alert>
-              )}
-
-              {/* Recording Preview & Actions */}
-              {recordingUrl && !isRecording && (
-                <div className="recording-result">
-                  <h5 className="text-center mb-3">✅ Recording Complete!</h5>
-                  
-                  <div className="video-container mb-3">
-                    <video
-                      src={recordingUrl}
-                      controls
-                      className="result-video"
-                    />
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="d-grid gap-2 d-md-flex justify-content-md-center mb-3">
-                      <Button 
-                        variant="info" 
-                        onClick={downloadRecording}
-                        className="px-4"
-                      >
-                        📥 Download Recording
-                      </Button>
-                      
-                      <Button
-                        variant="primary"
-                        onClick={handleUpload}
-                        disabled={uploadStatus === 'uploading'}
-                        className="px-4"
-                      >
-                        {uploadStatus === 'uploading' ? (
-                          <>⏳ Uploading...</>
-                        ) : (
-                          <>☁️ Upload to Server</>
-                        )}
-                      </Button>
-                      
-                      <Button 
-                        variant="outline-secondary" 
-                        onClick={clearRecording}
-                        className="px-4"
-                      >
-                        🗑️ Clear
-                      </Button>
-                    </div>
+                {/* Main Recording Card */}
+                <Card className="main-card">
+                  <Card.Body className="card-body-custom">
                     
-                    <Button 
-                      variant="outline-success" 
-                      onClick={() => {
-                        clearRecording();
-                        // Small delay to ensure state is reset
-                        setTimeout(() => {
-                          startRecording();
-                        }, 100);
-                      }}
-                      className="px-4"
-                    >
-                      🔄 Record Another
-                    </Button>
-                  </div>
+                    {/* Error Display */}
+                    {error && (
+                      <Alert variant="danger" className="alert-custom" dismissible onClose={() => setError('')}>
+                        <div className="alert-content">
+                          <span className="alert-icon">⚠️</span>
+                          <div>
+                            <strong>Recording Error</strong>
+                            <p className="mb-0">{error}</p>
+                          </div>
+                        </div>
+                      </Alert>
+                    )}
+
+                    {/* Recording Timer */}
+                    {isRecording && (
+                      <div className="recording-timer">
+                        <div className="timer-display">
+                          <span className="recording-indicator">🔴</span>
+                          <span className="timer-text">
+                            {formatTime(recordingTime)} / {formatTime(MAX_RECORDING_TIME)}
+                          </span>
+                        </div>
+                        <ProgressBar 
+                          variant={progressPercentage > 80 ? 'danger' : 'primary'}
+                          now={progressPercentage} 
+                          className="progress-custom"
+                        />
+                        <div className="timer-info">
+                          Time remaining: {formatTime(timeRemaining)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Live Preview */}
+                    {isRecording && (
+                      <div className="video-section">
+                        <div className="section-header">
+                          <h5>📺 Live Preview</h5>
+                          <Badge className="live-badge">LIVE</Badge>
+                        </div>
+                        <div className="video-container">
+                          <video
+                            ref={videoRef}
+                            autoPlay
+                            muted
+                            playsInline
+                            className="video-player"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Control Buttons */}
+                    <div className="controls-section">
+                      {!isRecording && !recordingUrl && (
+                        <Button
+                          className="btn-custom btn-start"
+                          size="lg"
+                          onClick={startRecording}
+                        >
+                          <span className="btn-icon">🎬</span>
+                          Start Screen Recording
+                        </Button>
+                      )}
+                      
+                      {isRecording && (
+                        <Button
+                          className="btn-custom btn-stop"
+                          size="lg"
+                          onClick={stopRecording}
+                        >
+                          <span className="btn-icon">⏹️</span>
+                          Stop Recording
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Instructions */}
+                    {!isRecording && !recordingUrl && (
+                      <div className="instructions-section">
+                        <div className="instruction-header">
+                          <span className="instruction-icon">📋</span>
+                          <h5>How to Record</h5>
+                        </div>
+                        <ol className="instruction-list">
+                          <li>Click "Start Screen Recording" button</li>
+                          <li>Select the browser tab or entire screen</li>
+                          <li>Allow microphone access for audio</li>
+                          <li>Recording stops automatically after 3 minutes</li>
+                          <li>Download or upload your recording</li>
+                        </ol>
+                      </div>
+                    )}
+
+                    {/* Recording Result */}
+                    {recordingUrl && !isRecording && (
+                      <div className="result-section">
+                        <div className="section-header">
+                          <h5>✅ Recording Complete</h5>
+                          <Badge className="success-badge">Ready</Badge>
+                        </div>
+                        
+                        <div className="video-section">
+                          <div className="video-container">
+                            <video
+                              src={recordingUrl}
+                              controls
+                              className="video-player"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="actions-section">
+                          <div className="action-group primary-actions">
+                            <Button 
+                              className="btn-custom btn-download"
+                              onClick={downloadRecording}
+                            >
+                              <span className="btn-icon">📥</span>
+                              Download
+                            </Button>
+                            
+                            <Button
+                              className="btn-custom btn-upload"
+                              onClick={handleUpload}
+                              disabled={uploadStatus === 'uploading'}
+                            >
+                              <span className="btn-icon">
+                                {uploadStatus === 'uploading' ? '⏳' : '☁️'}
+                              </span>
+                              {uploadStatus === 'uploading' ? 'Uploading...' : 'Upload'}
+                            </Button>
+                          </div>
+                          
+                          <div className="action-group secondary-actions">
+                            <Button 
+                              className="btn-custom btn-secondary"
+                              onClick={clearRecording}
+                            >
+                              <span className="btn-icon">🗑️</span>
+                              Clear
+                            </Button>
+                            
+                            <Button 
+                              className="btn-custom btn-secondary"
+                              onClick={() => {
+                                clearRecording();
+                                setTimeout(() => startRecording(), 100);
+                              }}
+                            >
+                              <span className="btn-icon">🔄</span>
+                              Record Again
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Upload Status */}
+                    {uploadStatus === 'success' && (
+                      <Alert className="alert-custom alert-success">
+                        <div className="alert-content">
+                          <span className="alert-icon">✅</span>
+                          <div>
+                            <strong>Upload Successful!</strong>
+                            <p className="mb-0">Recording saved successfully. Check your recordings list.</p>
+                          </div>
+                        </div>
+                      </Alert>
+                    )}
+                    
+                    {uploadStatus === 'error' && (
+                      <Alert className="alert-custom alert-error">
+                        <div className="alert-content">
+                          <span className="alert-icon">❌</span>
+                          <div>
+                            <strong>Upload Failed</strong>
+                            <p className="mb-0">Failed to upload recording. Please try again.</p>
+                          </div>
+                        </div>
+                      </Alert>
+                    )}
+                  </Card.Body>
+                </Card>
+              </div>
+            )}
+
+            {/* Recordings View */}
+            {currentView === 'recordings' && (
+              <div className="view-container">
+                <div className="page-header">
+                  <h1 className="page-title">
+                    📁 My Recordings
+                    <Badge className="count-badge ms-3">Dashboard</Badge>
+                  </h1>
+                  <p className="page-subtitle">
+                    Manage and view all your screen recordings
+                  </p>
                 </div>
-              )}
+                
+                <RecordingsList refreshKey={refreshKey} apiUrl={API_URL} />
+              </div>
+            )}
 
-              {/* Upload Status */}
-              {uploadStatus === 'success' && (
-                <Alert variant="success" className="mt-3">
-                  <Alert.Heading>✅ Success!</Alert.Heading>
-                  Recording uploaded successfully! Check the recordings list below.
-                </Alert>
-              )}
-              
-              {uploadStatus === 'error' && (
-                <Alert variant="danger" className="mt-3">
-                  <Alert.Heading>❌ Upload Failed</Alert.Heading>
-                  Failed to upload recording. Please check your connection and try again.
-                </Alert>
-              )}
-            </Card.Body>
-          </Card>
+            {/* Show recent recordings in recorder view */}
+            {currentView === 'recorder' && (
+              <div className="recent-section">
+                <div className="section-header">
+                  <h4 className='recent-heading'>📂 Recent Recordings</h4>
+                  <Button 
+                    className="btn-custom btn-link"
+                    onClick={() => setCurrentView('recordings')}
+                  >
+                    View All →
+                  </Button>
+                </div>
+                <RecordingsList refreshKey={refreshKey} apiUrl={API_URL} />
+              </div>
+            )}
 
-          {/* Recordings List */}
-          <RecordingsList refreshKey={refreshKey} apiUrl={API_URL} />
-        </Col>
-      </Row>
-    </Container>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 
