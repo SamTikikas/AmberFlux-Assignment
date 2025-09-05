@@ -1394,3 +1394,199 @@ select.form-control {
   border-top: 1px solid var(--color-border);
   padding: var(--space-16) var(--space-24);
 }
+:root {
+  /* Enhance primary colors and shadows */
+  --color-primary: #21808d; /* Slightly deeper teal */
+  --color-primary-hover: #29a3b0; 
+  --color-primary-active: #1c6976;
+
+  --color-surface: #fffefb; /* Soft off-white */
+  --color-background: #f8fafc; /* Very light background */
+
+  --shadow-md: 0 6px 12px rgba(33, 128, 141, 0.2);
+  --shadow-lg: 0 12px 24px rgba(33, 128, 141, 0.15);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-slate-900);
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-normal);
+  font-size: var(--font-size-md);
+}
+
+.page-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 24px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(33, 128, 141, 0.3);
+}
+
+.main-card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+  margin-bottom: 32px;
+}
+
+.btn-custom {
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  padding: 12px 24px;
+  transition: background-color 250ms ease, box-shadow 250ms ease;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.btn-start {
+  background-color: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-start:hover {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.btn-stop {
+  background-color: var(--color-red-500);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.btn-stop:hover {
+  background-color: var(--color-red-400);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.recording-timer {
+  background-color: rgba(255, 84, 89, 0.1);
+  border: 1px solid rgba(255, 84, 89, 0.3);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--color-red-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 0 auto 24px;
+}
+
+.progress-custom {
+  border-radius: var(--radius-md);
+  height: 12px;
+  background-color: var(--color-gray-200);
+  overflow: hidden;
+  margin: 12px 0 24px;
+}
+
+.progress-custom > div {
+  background-color: var(--color-primary);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.video-container {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  background-color: #12181a;
+  max-height: 480px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video-player {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.instructions-section,
+.result-section {
+  background-color: rgba(var(--color-teal-500-rgb), 0.1);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid rgba(var(--color-teal-500-rgb), 0.25);
+  margin-bottom: 24px;
+}
+
+.instruction-list li {
+  margin-bottom: 6px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.alert-success {
+  background-color: rgba(var(--color-teal-500-rgb), 0.15);
+  border-left: 4px solid var(--color-success);
+  color: var(--color-text);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-xs);
+}
+
+.alert-error {
+  background-color: rgba(var(--color-red-500-rgb), 0.15);
+  border-left: 4px solid var(--color-error);
+  color: var(--color-red-500);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Accessibility focus outline */
+
+.btn-custom:focus-visible,
+.form-control:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Animate pulse effect */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Responsive improvements */
+
+@media (max-width: 768px) {
+  .main-card {
+    padding: 20px;
+  }
+  .btn-custom {
+    width: 100%;
+  }
+  .recording-timer {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 28px;
+  }
+  .btn-custom {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+  .video-container {
+    max-height: 320px;
+  }
+}
